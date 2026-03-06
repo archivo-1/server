@@ -1,0 +1,5 @@
+<script>
+    fetch('url_actual.txt')
+    .then(r => r.text())
+    .then(url => { window.location.href = url.trim(); });
+</script>
