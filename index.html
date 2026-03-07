@@ -4,47 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Acceso - Proyecto Faro</title>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #1a1a1a; color: white; }
-        input { padding: 10px; margin: 5px; width: 80%; max-width: 200px; border-radius: 5px; border: 1px solid #444; background: #333; color: white; }
-        button { padding: 15px 30px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 20px; }
-        #qrcode { margin-top: 30px; background: white; display: inline-block; padding: 10px; border-radius: 10px; display: none; }
+        body { font-family: 'Courier New', Courier, monospace; text-align: center; padding: 20px; background: #1a1a1a; color: #00fbff; }
+        input { padding: 10px; margin: 5px; width: 80%; max-width: 200px; border-radius: 5px; border: 1px solid #00fbff; background: #333; color: #00fbff; text-align: center; }
+        button { padding: 12px 24px; background: transparent; color: #00fbff; border: 2px solid #00fbff; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 10px; font-family: inherit; transition: all 0.2s; }
+        button:hover { background: #00fbff; color: #1a1a1a; }
+        #qrcode-container { margin-top: 30px; background: white; display: inline-block; padding: 15px; border-radius: 10px; border: 4px solid #00fbff; display: none; }
+        #url-texto { margin-top: 20px; color: #aaa; font-size: 0.9em; word-break: break-all; max-width: 80%; margin-left: auto; margin-right: auto; }
         .instrucciones { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
+        .botones-accion { margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
-    <h2>🔑 LLAVE DE ACCESO AL NODO</h2>
-    <p class="instrucciones">Ingrese las 4 palabras que muestra el monitor SCL01</p>
+    <h2>🔑 LLAVE DE ACCESO AL NODO SCL01</h2>
+    <p class="instrucciones">Ingrese las 4 palabras clave que visualiza en el monitor del PC viejo.</p>
     
     <div id="inputs">
-        <input type="text" id="p1" placeholder="Palabra 1">
-        <input type="text" id="p2" placeholder="Palabra 2"><br>
-        <input type="text" id="p3" placeholder="Palabra 3">
-        <input type="text" id="p4" placeholder="Palabra 4">
+        <input type="text" id="p1" placeholder="palabra-1">
+        <input type="text" id="p2" placeholder="palabra-2"><br>
+        <input type="text" id="p3" placeholder="palabra-3">
+        <input type="text" id="p4" placeholder="palabra-4">
     </div>
 
-    <button onclick="generar()">GENERAR CÓDIGO QR</button>
+    <button onclick="generar()">GENERAR CÓDIGO QR Y ENLACE</button>
 
-    <div id="qrcode"></div>
-    <p id="url-texto" style="margin-top:15px; color:#00fbff;"></p>
+    <div id="qrcode-container">
+        <div id="qrcode"></div>
+    </div>
+
+    <p id="url-texto"></p>
+
+    <div id="botones-accion" class="botones-accion">
+        <button onclick="copiarUrl()">📋 COPIAR ENLACE</button>
+        <button onclick="accederUrl()">🌐 ACCEDER DIRECTAMENTE</button>
+    </div>
 
     <script>
-        function generar() {
-            const p1 = document.getElementById('p1').value.trim();
-            const p2 = document.getElementById('p2').value.trim();
-            const p3 = document.getElementById('p3').value.trim();
-            const p4 = document.getElementById('p4').value.trim();
-            
-            if(!p1 || !p2 || !p3 || !p4) return alert("Por favor, llena las 4 palabras.");
+        let urlGlobal = "";
 
-            const urlFull = "https://" + p1 + "-" + p2 + "-" + p3 + "-" + p4 + ".trycloudflare.com/index.html";
+        function generar() {
+            // Obtenemos las palabras y las limpiamos
+            const p1 = document.getElementById('p1').value.trim().toLowerCase();
+            const p2 = document.getElementById('p2').value.trim().toLowerCase();
+            const p3 = document.getElementById('p3').value.trim().toLowerCase();
+            const p4 = document.getElementById('p4').value.trim().toLowerCase();
             
-            // Usamos la API de Google Charts para generar el QR al vuelo
-            const qrDiv = document.getElementById('qrcode');
-            qrDiv.style.display = "inline-block";
-            qrDiv.innerHTML = '<img src="https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=' + encodeURIComponent(urlFull) + '&choe=UTF-8" alt="QR Code">';
+            if(!p1 || !p2 || !p3 || !p4) return alert("Error: Debe completar las 4 palabras clave del monitor.");
+
+            // Construimos la URL
+            urlGlobal = "https://" + p1 + "-" + p2 + "-" + p3 + "-" + p4 + ".trycloudflare.com/index.html";
             
-            document.getElementById('url-texto').innerText = urlFull;
+            // 1. Generamos el QR de forma AUTONOMA e INTERNA
+            const qrcodeDiv = document.getElementById("qrcode");
+            qrcodeDiv.innerHTML = ""; // Limpiamos QR anterior
+            
+            new QRCode(qrcodeDiv, {
+                text: urlGlobal,
+                width: 256,
+                height: 256,
+                colorDark : "#1a1a1a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            // Mostramos los contenedores
+            document.getElementById('qrcode-container').style.display = "inline-block";
+            document.getElementById('url-texto').innerText = urlGlobal;
+            document.getElementById('botones-accion').style.display = "block";
+        }
+
+        function copiarUrl() {
+            if(!urlGlobal) return;
+            navigator.clipboard.writeText(urlGlobal).then(() => {
+                alert("Enlace copiado al portapapeles. Ya puede pegarlo en su navegador o WhatsApp.");
+            });
+        }
+
+        function accederUrl() {
+            if(!urlGlobal) return;
+            window.open(urlGlobal, '_blank'); // Abre en pestaña nueva
         }
     </script>
 </body>
