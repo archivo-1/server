@@ -5,14 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Llave de acceso</title>
 
-  <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.webmanifest">
-
-  <!-- Colores de tema PWA -->
   <meta name="theme-color" content="#000000" />
-
-  <!-- QRCode.js desde CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> <!-- [web:20] -->
 
   <style>
     :root {
@@ -24,9 +19,7 @@
                    "Liberation Mono", monospace;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -35,10 +28,9 @@
       color: var(--fg);
       font-family: var(--font-main);
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
       min-height: 100vh;
-      align-items: center;
-      justify-content: flex-start;
     }
 
     .app {
@@ -46,7 +38,6 @@
       max-width: 360px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
       min-height: 100vh;
     }
 
@@ -56,15 +47,29 @@
       text-align: center;
     }
 
-    label {
-      font-size: 0.8rem;
-      margin-bottom: 2px;
+    /* VISTAS */
+
+    .view {
+      flex: 1;
+      display: none;
+      flex-direction: column;
     }
+
+    .view.active {
+      display: flex;
+    }
+
+    /* FORM VIEW */
 
     .field-group {
       display: flex;
       flex-direction: column;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      margin-bottom: 2px;
     }
 
     input[type="text"] {
@@ -81,7 +86,9 @@
       outline: 1px solid var(--accent);
     }
 
-    button {
+    .generate-btn {
+      margin-top: 4px;
+      width: 100%;
       background-color: #050505;
       border: 1px solid var(--accent);
       color: var(--fg);
@@ -93,34 +100,7 @@
       text-transform: uppercase;
     }
 
-    button:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-
-    /* Vista de formulario (campos + generar) */
-    .form-view {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .generate-btn {
-      width: 100%;
-      margin-top: 2px;
-    }
-
-    /* Vista de QR (oculta por defecto) */
-    .qr-view {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .qr-view.active {
-      display: flex;
-    }
+    /* QR VIEW */
 
     .qr-main {
       flex: 1;
@@ -137,15 +117,20 @@
     }
 
     #qrcode {
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
     }
 
     .back-btn {
       margin-top: 6px;
       font-size: 0.7rem;
       padding: 4px 8px;
-      align-self: center;
+      background-color: #050505;
+      border: 1px solid var(--accent);
+      color: var(--fg);
+      border-radius: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
     }
 
     .url-preview {
@@ -167,8 +152,20 @@
 
     .buttons-row button {
       flex: 1;
-      font-size: 0.7rem;
+      background-color: #050505;
+      border: 1px solid var(--accent);
+      color: var(--fg);
       padding: 4px;
+      font-family: var(--font-main);
+      font-size: 0.7rem;
+      cursor: pointer;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+
+    .buttons-row button:disabled {
+      opacity: 0.4;
+      cursor: default;
     }
 
     .status {
@@ -194,8 +191,8 @@
   <div class="app">
     <h1>Llave de acceso</h1>
 
-    <!-- Vista de formulario -->
-    <div class="form-view" id="formView">
+    <!-- VISTA 1: FORMULARIO -->
+    <div class="view active" id="formView">
       <div class="field-group">
         <label for="word1">Palabra 1</label>
         <input id="word1" type="text" autocomplete="off" />
@@ -216,11 +213,13 @@
         <input id="word4" type="text" autocomplete="off" />
       </div>
 
-      <button id="generateBtn" class="generate-btn">Generar llave de acceso</button>
+      <button id="generateBtn" class="generate-btn">
+        Generar llave de acceso
+      </button>
     </div>
 
-    <!-- Vista de QR -->
-    <div class="qr-view" id="qrView">
+    <!-- VISTA 2: QR -->
+    <div class="view" id="qrView">
       <div class="qr-main">
         <div class="qr-container">
           <div id="qrcode"></div>
@@ -246,7 +245,7 @@
   </div>
 
   <script>
-    // Registro de Service Worker para PWA
+    // PWA service worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").catch(() => {});
@@ -257,17 +256,27 @@
     const word2 = document.getElementById("word2");
     const word3 = document.getElementById("word3");
     const word4 = document.getElementById("word4");
-    const generateBtn = document.getElementById("generateBtn");
-    const enterBtn = document.getElementById("enterBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const urlPreview = document.getElementById("urlPreview");
-    const statusEl = document.getElementById("status");
-    const qrContainer = document.getElementById("qrcode");
+
     const formView = document.getElementById("formView");
-    const qrView = document.getElementById("qrView");
-    const backBtn = document.getElementById("backBtn");
+    const qrView   = document.getElementById("qrView");
+
+    const generateBtn = document.getElementById("generateBtn");
+    const backBtn     = document.getElementById("backBtn");
+    const enterBtn    = document.getElementById("enterBtn");
+    const copyBtn     = document.getElementById("copyBtn");
+
+    const urlPreview  = document.getElementById("urlPreview");
+    const statusEl    = document.getElementById("status");
+    const qrContainer = document.getElementById("qrcode");
 
     let currentUrl = "";
+
+    function safeSlug(s) {
+      return s
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9\-]/g, "");
+    }
 
     function buildUrl() {
       const w1 = word1.value.trim();
@@ -275,30 +284,14 @@
       const w3 = word3.value.trim();
       const w4 = word4.value.trim();
 
-      if (!w1 || !w2 || !w3 || !w4) {
-        return "";
-      }
-
-      const safe = (s) =>
-        s
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9\-]/g, "");
-
-      const part1 = safe(w1);
-      const part2 = safe(w2);
-      const part3 = safe(w3);
-      const part4 = safe(w4);
+      if (!w1 || !w2 || !w3 || !w4) return "";
 
       return (
         "https://" +
-        part1 +
-        "-" +
-        part2 +
-        "-" +
-        part3 +
-        "-" +
-        part4 +
+        safeSlug(w1) + "-" +
+        safeSlug(w2) + "-" +
+        safeSlug(w3) + "-" +
+        safeSlug(w4) +
         ".trycloudflare.com/index.html"
       );
     }
@@ -306,15 +299,14 @@
     function renderQr(url) {
       qrContainer.innerHTML = "";
       if (!url) return;
-
       new QRCode(qrContainer, {
         text: url,
-        width: 200,
-        height: 200,
+        width: 220,
+        height: 220,
         colorDark: "#00ff5f",
         colorLight: "#000000",
         correctLevel: QRCode.CorrectLevel.H
-      });
+      }); // [web:20]
     }
 
     function setStatus(msg, isError = false) {
@@ -322,13 +314,13 @@
       statusEl.classList.toggle("error", !!isError);
     }
 
-    function showFormView() {
-      formView.style.display = "flex";
+    function showForm() {
+      formView.classList.add("active");
       qrView.classList.remove("active");
     }
 
-    function showQrView() {
-      formView.style.display = "none";
+    function showQr() {
+      formView.classList.remove("active");
       qrView.classList.add("active");
     }
 
@@ -340,7 +332,7 @@
         copyBtn.disabled = true;
         urlPreview.textContent = "URL generada aparecerá aquí…";
         qrContainer.innerHTML = "";
-        showFormView();
+        showForm();
         return;
       }
 
@@ -350,9 +342,18 @@
       enterBtn.disabled = false;
       copyBtn.disabled = false;
       setStatus("Llave generada.");
+      showQr();
+    });
 
-      // Cambiamos a la vista de QR
-      showQrView();
+    backBtn.addEventListener("click", () => {
+      showForm();
+      // si quieres también limpiar el estado, descomenta:
+      // currentUrl = "";
+      // urlPreview.textContent = "URL generada aparecerá aquí…";
+      // qrContainer.innerHTML = "";
+      // enterBtn.disabled = true;
+      // copyBtn.disabled = true;
+      // setStatus("");
     });
 
     enterBtn.addEventListener("click", () => {
@@ -365,18 +366,10 @@
       try {
         await navigator.clipboard.writeText(currentUrl);
         setStatus("URL copiada al portapapeles.");
-      } catch (err) {
+      } catch (e) {
         setStatus("No se pudo copiar la URL.", true);
       }
     });
-
-    backBtn.addEventListener("click", () => {
-      // Volver a mostrar campos; QR y estado se mantienen por si quieres
-      showFormView();
-    });
-
-    // Estado inicial: formulario visible, QR oculto
-    showFormView();
   </script>
 </body>
 </html>
