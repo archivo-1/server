@@ -47,6 +47,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      min-height: 100vh;
     }
 
     h1 {
@@ -80,20 +81,13 @@
       outline: 1px solid var(--accent);
     }
 
-    .buttons-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
     button {
-      flex: 1;
       background-color: #050505;
       border: 1px solid var(--accent);
       color: var(--fg);
       padding: 6px;
       font-family: var(--font-main);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       cursor: pointer;
       border-radius: 2px;
       text-transform: uppercase;
@@ -104,16 +98,54 @@
       cursor: default;
     }
 
-    .qr-container {
-      margin-top: 8px;
+    /* Vista de formulario (campos + generar) */
+    .form-view {
       display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .generate-btn {
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    /* Vista de QR (oculta por defecto) */
+    .qr-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .qr-view.active {
+      display: flex;
+    }
+
+    .qr-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
     }
 
-    #qrcode {
+    .qr-container {
       padding: 4px;
       background-color: #000000;
       display: inline-block;
+    }
+
+    #qrcode {
+      width: 200px;
+      height: 200px;
+    }
+
+    .back-btn {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      align-self: center;
     }
 
     .url-preview {
@@ -124,6 +156,19 @@
       border: 1px solid #00aa4a;
       border-radius: 2px;
       word-break: break-all;
+      width: 100%;
+    }
+
+    .buttons-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .buttons-row button {
+      flex: 1;
+      font-size: 0.7rem;
+      padding: 4px;
     }
 
     .status {
@@ -138,7 +183,6 @@
     }
 
     footer {
-      margin-top: auto;
       font-size: 0.6rem;
       opacity: 0.6;
       text-align: center;
@@ -150,42 +194,51 @@
   <div class="app">
     <h1>Llave de acceso</h1>
 
-    <div class="field-group">
-      <label for="word1">Palabra 1</label>
-      <input id="word1" type="text" autocomplete="off" />
+    <!-- Vista de formulario -->
+    <div class="form-view" id="formView">
+      <div class="field-group">
+        <label for="word1">Palabra 1</label>
+        <input id="word1" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="word2">Palabra 2</label>
+        <input id="word2" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="word3">Palabra 3</label>
+        <input id="word3" type="text" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="word4">Palabra 4</label>
+        <input id="word4" type="text" autocomplete="off" />
+      </div>
+
+      <button id="generateBtn" class="generate-btn">Generar llave de acceso</button>
     </div>
 
-    <div class="field-group">
-      <label for="word2">Palabra 2</label>
-      <input id="word2" type="text" autocomplete="off" />
+    <!-- Vista de QR -->
+    <div class="qr-view" id="qrView">
+      <div class="qr-main">
+        <div class="qr-container">
+          <div id="qrcode"></div>
+        </div>
+        <button id="backBtn" class="back-btn">← Volver</button>
+      </div>
+
+      <div class="url-preview" id="urlPreview">
+        URL generada aparecerá aquí…
+      </div>
+
+      <div class="buttons-row">
+        <button id="enterBtn" disabled>Ingresar</button>
+        <button id="copyBtn" disabled>Copiar</button>
+      </div>
+
+      <div class="status" id="status"></div>
     </div>
-
-    <div class="field-group">
-      <label for="word3">Palabra 3</label>
-      <input id="word3" type="text" autocomplete="off" />
-    </div>
-
-    <div class="field-group">
-      <label for="word4">Palabra 4</label>
-      <input id="word4" type="text" autocomplete="off" />
-    </div>
-
-    <button id="generateBtn">Generar llave de acceso</button>
-
-    <div class="qr-container">
-      <div id="qrcode"></div>
-    </div>
-
-    <div class="url-preview" id="urlPreview">
-      URL generada aparecerá aquí…
-    </div>
-
-    <div class="buttons-row">
-      <button id="enterBtn" disabled>Ingresar</button>
-      <button id="copyBtn" disabled>Copiar</button>
-    </div>
-
-    <div class="status" id="status"></div>
 
     <footer>
       PWA · QR verde sobre fondo negro · estilo terminal
@@ -210,10 +263,12 @@
     const urlPreview = document.getElementById("urlPreview");
     const statusEl = document.getElementById("status");
     const qrContainer = document.getElementById("qrcode");
+    const formView = document.getElementById("formView");
+    const qrView = document.getElementById("qrView");
+    const backBtn = document.getElementById("backBtn");
 
     let currentUrl = "";
 
-    // Función para construir la URL
     function buildUrl() {
       const w1 = word1.value.trim();
       const w2 = word2.value.trim();
@@ -224,7 +279,6 @@
         return "";
       }
 
-      // Normalizamos sustituyendo espacios por guiones bajos, etc. si quieres
       const safe = (s) =>
         s
           .toLowerCase()
@@ -249,17 +303,14 @@
       );
     }
 
-    // Generar QR con colores personalizados (verde sobre negro)
     function renderQr(url) {
       qrContainer.innerHTML = "";
       if (!url) return;
 
-      // Por defecto, QRCode.js usa negro sobre blanco,
-      // pero se puede configurar con colorDark y colorLight. [web:20][web:11]
       new QRCode(qrContainer, {
         text: url,
-        width: 180,
-        height: 180,
+        width: 200,
+        height: 200,
         colorDark: "#00ff5f",
         colorLight: "#000000",
         correctLevel: QRCode.CorrectLevel.H
@@ -271,6 +322,16 @@
       statusEl.classList.toggle("error", !!isError);
     }
 
+    function showFormView() {
+      formView.style.display = "flex";
+      qrView.classList.remove("active");
+    }
+
+    function showQrView() {
+      formView.style.display = "none";
+      qrView.classList.add("active");
+    }
+
     generateBtn.addEventListener("click", () => {
       const url = buildUrl();
       if (!url) {
@@ -279,6 +340,7 @@
         copyBtn.disabled = true;
         urlPreview.textContent = "URL generada aparecerá aquí…";
         qrContainer.innerHTML = "";
+        showFormView();
         return;
       }
 
@@ -288,6 +350,9 @@
       enterBtn.disabled = false;
       copyBtn.disabled = false;
       setStatus("Llave generada.");
+
+      // Cambiamos a la vista de QR
+      showQrView();
     });
 
     enterBtn.addEventListener("click", () => {
@@ -304,6 +369,14 @@
         setStatus("No se pudo copiar la URL.", true);
       }
     });
+
+    backBtn.addEventListener("click", () => {
+      // Volver a mostrar campos; QR y estado se mantienen por si quieres
+      showFormView();
+    });
+
+    // Estado inicial: formulario visible, QR oculto
+    showFormView();
   </script>
 </body>
 </html>
