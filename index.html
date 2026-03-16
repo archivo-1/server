@@ -1,85 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Acceso al Repositorio - Digital Vertigo</title>
     <style>
         :root {
-            --bg-color: #f4f4f9;
+            --bg-color: #f8f9fa;
             --card-bg: #ffffff;
-            --text-main: #333;
+            --text-main: #1a1a1a;
+            --text-muted: #666;
             --accent: #856101; 
+            --data-flow: #00f2ff;
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
 
         .container {
             display: flex;
-            gap: 2rem;
-            max-width: 900px;
-            padding: 20px;
-            flex-wrap: wrap;
+            gap: 1.5rem;
+            max-width: 1000px;
+            width: 100%;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .portal-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 2rem;
-            width: 350px;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            flex: 1;
+            min-width: 300px;
+            max-width: 450px;
             text-align: center;
-            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
         }
 
         .portal-card:hover {
             transform: translateY(-5px);
         }
 
-        .portal-image {
+        /* Contenedor de SVG para mantener proporciones */
+        .diagram-container {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            height: 140px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
             border-radius: 8px;
-            margin-bottom: 1.5rem;
-            background-color: #ddd; /* Placeholder color */
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            max-width: 280px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-main);
+            line-height: 1.3;
         }
 
         .description {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            min-height: 80px; /* Keeps buttons aligned */
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            flex-grow: 1; /* Empuja el botón hacia abajo */
         }
 
         .btn {
-            display: inline-block;
+            display: block;
             background-color: var(--accent);
             color: white;
-            padding: 12px 24px;
+            padding: 14px 20px;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 600;
-            transition: opacity 0.2s;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: filter 0.2s;
         }
 
         .btn:hover {
-            opacity: 0.9;
+            filter: brightness(1.2);
         }
 
-        @media (max-width: 768px) {
-            .container { flex-direction: column; }
-            .portal-card { width: 100%; max-width: 400px; }
+        /* Ajustes para Móvil */
+        @media (max-width: 680px) {
+            .container {
+                gap: 1rem;
+            }
+            .portal-card {
+                min-width: 100%;
+                padding: 1.2rem;
+            }
+            .diagram-container {
+                height: 120px;
+            }
+            h2 { font-size: 1rem; }
         }
     </style>
 </head>
@@ -87,21 +126,47 @@
 
     <div class="container">
         <div class="portal-card">
-            <img src="https://raw.githubusercontent.com/archivo-1/server/refs/heads/main/IconoB.png" alt="Local Server" class="portal-image">
-            <div class="description">
-                <strong>Hosteada en el Nodo Digital Vertigo, Palacio Pereira</strong><br>
-                Los archivos que componen este sitio son enviados desde un pc de escritorio de Digital Vertigo en Santiago, Chile.
+            <div class="diagram-container">
+                <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="30" y="35" width="25" height="45" fill="#1a1a1a"/>
+                    <rect x="35" y="40" width="15" height="5" fill="#333"/>
+                    <circle cx="42.5" cy="70" r="3" fill="var(--data-flow)">
+                        <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite" />
+                    </circle>
+                    <text x="15" y="95" font-family="sans-serif" font-size="7" fill="#999">NODO 2007 (LOCAL)</text>
+                    <line x1="65" y1="58" x2="135" y2="58" stroke="var(--data-flow)" stroke-width="3" stroke-linecap="round"/>
+                    <rect x="145" y="40" width="25" height="45" rx="4" fill="#1a1a1a"/>
+                    <rect x="148" y="44" width="19" height="35" rx="1" fill="#333"/>
+                    <text x="135" y="95" font-family="sans-serif" font-size="7" fill="#999">DISPOSITIVO</text>
+                </svg>
             </div>
-            <a href="https://myrtle-dat-swim-frost.trycloudflare.com" class="btn">Nodo Digital Vertigo</a>
+            <h2>Infraestructura Soberana (Lite)</h2>
+            <div class="description">
+                <strong>Servidor Local - Palacio Pereira</strong><br>
+                Los datos recorren escasos metros desde un computador recuperado del año 2007. Una red efímera y local que prioriza el bajo consumo.
+            </div>
+            <a href="https://myrtle-dat-swim-frost.trycloudflare.com" class="btn">Acceso Nodo Local</a>
         </div>
 
         <div class="portal-card">
-            <img src="https://raw.githubusercontent.com/archivo-1/server/refs/heads/main/IconoA.png" alt="Cloud Hosting" class="portal-image">
-            <div class="description">
-                <strong>Hosteada en los servidores de Github</strong><br>
-                Los archivos que componen el sitio son enviados desde un rack de Microsoft en Ashburn, Virginia, EE.UU..
+            <div class="diagram-container">
+                <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="40" width="30" height="40" rx="2" fill="#1a1a1a"/>
+                    <line x1="25" y1="50" x2="45" y2="50" stroke="var(--data-flow)" stroke-width="1.5"/>
+                    <line x1="25" y1="60" x2="45" y2="60" stroke="var(--data-flow)" stroke-width="1.5"/>
+                    <text x="10" y="95" font-family="sans-serif" font-size="7" fill="#999">ASHBURN, USA</text>
+                    <path d="M55 60 Q110 10 165 60" stroke="var(--data-flow)" stroke-width="2" fill="none" stroke-dasharray="4"/>
+                    <rect x="170" y="50" width="20" height="35" rx="3" fill="#1a1a1a"/>
+                    <rect x="173" y="53" width="14" height="25" rx="1" fill="#333"/>
+                    <text x="165" y="95" font-family="sans-serif" font-size="7" fill="#999">CHILE</text>
+                </svg>
             </div>
-            <a href="https://archivo-1.github.io/RepoDataCenters/" class="btn">Microsoft Github</a>
+            <h2>Infraestructura Global (Full)</h2>
+            <div class="description">
+                <strong>Microsoft Github - Virginia, USA</strong><br>
+                Los datos viajan ~8,400 km a través de cables submarinos desde el "Data Center Alley". Alta fidelidad gráfica mediante red global de alta latencia.
+            </div>
+            <a href="https://archivo-1.github.io/RepoDataCenters/" class="btn">Acceso Cloud Global</a>
         </div>
     </div>
 
